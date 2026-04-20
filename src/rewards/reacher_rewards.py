@@ -81,7 +81,7 @@ def reward_rb(
 	return 1.0 if is_in_target(goal_position, end_effector_position, target_radius=target_radius) else 0.0
 
 
-def reward_rc() -> float:
+def reward_rc(*_: object, **__: object) -> float:
 	"""Compute Rc from the assignment figure."""
 
 	return -1.0
@@ -116,7 +116,7 @@ def get_reward_function(formulation: str) -> Callable[..., float]:
 	if key in {"rb", "reward_b", "b"}:
 		return reward_rb
 	if key in {"rc", "reward_c", "c"}:
-		return lambda *args, **kwargs: reward_rc()
+		return reward_rc
 	raise ValueError(f"Unknown Reacher reward formulation: {formulation!r}")
 
 
