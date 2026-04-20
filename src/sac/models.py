@@ -103,7 +103,7 @@ class SquashedGaussianActor(nn.Module):
 class QNetwork(nn.Module):
     """State-action value network."""
 
-    def __init__(self, observation_dim: int, action_dim: int, hidden_sizes: Iterable[int] = (256, 256)) -> None:
+    def __init__(self, observation_dim: int, action_dim: int, hidden_sizes: Iterable[int] = (64,64)) -> None:
         super().__init__()
         hidden_sizes = tuple(int(size) for size in hidden_sizes)
         if not hidden_sizes:
