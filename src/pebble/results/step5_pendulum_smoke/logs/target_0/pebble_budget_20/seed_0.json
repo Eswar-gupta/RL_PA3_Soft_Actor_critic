@@ -1,0 +1,15 @@
+{
+  "method": "pebble",
+  "target_angle_deg": 0,
+  "seed": 0,
+  "preference_budget": 20,
+  "evaluation_steps": [
+    1000,
+    2000
+  ],
+  "mean_returns": [
+    -1244.4706162550788,
+    -1094.582213670028
+  ],
+  "preference_queries_used": 20
+}

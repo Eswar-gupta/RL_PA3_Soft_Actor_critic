@@ -1,9 +1,11 @@
-"""Environment helpers and Reacher reward wrappers."""
+"""Environment helpers and reward wrappers."""
 
 from __future__ import annotations
 
 import gymnasium as gym
 import numpy as np
+
+from src.rewards.pendulum_rewards import make_target_reward_function
 
 
 REACHER_REWARD_FORMULATIONS = {"ra", "rb", "rc"}
@@ -83,6 +85,27 @@ class ReacherRewardWrapper(gym.Wrapper):
         return observation, float(reward), bool(terminated), bool(truncated), info
 
 
+class PendulumTargetRewardWrapper(gym.Wrapper):
+    """Replace Pendulum reward with a target-angle reward."""
+
+    def __init__(self, env: gym.Env, target_angle_deg: float) -> None:
+        super().__init__(env)
+        self.target_angle_deg = float(target_angle_deg)
+        self.reward_fn = make_target_reward_function(self.target_angle_deg)
+
+    def step(self, action):
+        observation, _, terminated, truncated, info = self.env.step(action)
+        info = dict(info)
+        reward = self.reward_fn(observation, action)
+        info.update(
+            {
+                "custom_reward": float(reward),
+                "custom_reward_target_angle_deg": self.target_angle_deg,
+            }
+        )
+        return observation, float(reward), bool(terminated), bool(truncated), info
+
+
 def make_reacher_env(
     reward_formulation: str,
     *,
@@ -105,6 +128,27 @@ def make_reacher_env(
         target_radius=target_radius,
         velocity_threshold=velocity_threshold,
     )
+    env = gym.wrappers.RecordEpisodeStatistics(env)
+    if seed is not None:
+        env.reset(seed=seed)
+    return env
+
+
+def make_pendulum_env(
+    target_angle_deg: float,
+    *,
+    max_episode_steps: int = 200,
+    seed: int | None = None,
+    render_mode: str | None = None,
+) -> gym.Env:
+    """Construct a Pendulum-v1 environment with a target-angle reward."""
+
+    env = gym.make(
+        "Pendulum-v1",
+        max_episode_steps=max_episode_steps,
+        render_mode=render_mode,
+    )
+    env = PendulumTargetRewardWrapper(env, target_angle_deg=target_angle_deg)
     env = gym.wrappers.RecordEpisodeStatistics(env)
     if seed is not None:
         env.reset(seed=seed)

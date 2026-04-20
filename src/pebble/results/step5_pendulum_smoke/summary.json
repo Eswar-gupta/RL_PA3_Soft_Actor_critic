@@ -1,0 +1,129 @@
+{
+  "config": {
+    "seeds": [
+      0
+    ],
+    "target_angles_deg": [
+      0
+    ],
+    "preference_budgets": [
+      20
+    ],
+    "total_steps": 2000,
+    "start_steps": 200,
+    "eval_interval": 1000,
+    "eval_episodes": 2,
+    "max_episode_steps": 200,
+    "batch_size": 256,
+    "buffer_capacity": 1000000,
+    "gamma": 0.99,
+    "tau": 0.005,
+    "actor_lr": 0.0003,
+    "critic_lr": 0.0003,
+    "alpha_lr": 0.0003,
+    "hidden_sizes": [
+      256,
+      256
+    ],
+    "target_entropy": null,
+    "device": "cpu",
+    "query_interval": 200,
+    "query_batch_size": 5,
+    "reward_model_epochs": 1,
+    "reward_model_batch_size": 16
+  },
+  "aggregates_by_target": {
+    "0": {
+      "SAC (ground truth)": {
+        "evaluation_steps": [
+          1000,
+          2000
+        ],
+        "mean_curve": [
+          -1343.6542388285202,
+          -979.497227756174
+        ],
+        "ci_low": [
+          -1343.6542388285202,
+          -979.497227756174
+        ],
+        "ci_high": [
+          -1343.6542388285202,
+          -979.497227756174
+        ],
+        "learning_efficiency_auc": {
+          "mean": -1161575.7332923473,
+          "ci_low": -1161575.7332923473,
+          "ci_high": -1161575.7332923473
+        },
+        "final_performance_last10": {
+          "mean": -1161.5757332923472,
+          "ci_low": -1161.5757332923472,
+          "ci_high": -1161.5757332923472
+        },
+        "num_runs": 1
+      },
+      "PEBBLE (budget=20)": {
+        "evaluation_steps": [
+          1000,
+          2000
+        ],
+        "mean_curve": [
+          -1244.4706162550788,
+          -1094.582213670028
+        ],
+        "ci_low": [
+          -1244.4706162550788,
+          -1094.582213670028
+        ],
+        "ci_high": [
+          -1244.4706162550788,
+          -1094.582213670028
+        ],
+        "learning_efficiency_auc": {
+          "mean": -1169526.4149625534,
+          "ci_low": -1169526.4149625534,
+          "ci_high": -1169526.4149625534
+        },
+        "final_performance_last10": {
+          "mean": -1169.5264149625534,
+          "ci_low": -1169.5264149625534,
+          "ci_high": -1169.5264149625534
+        },
+        "num_runs": 1
+      }
+    }
+  },
+  "runs": [
+    {
+      "method": "sac_ground_truth",
+      "target_angle_deg": 0,
+      "seed": 0,
+      "preference_budget": null,
+      "evaluation_steps": [
+        1000,
+        2000
+      ],
+      "mean_returns": [
+        -1343.6542388285202,
+        -979.497227756174
+      ],
+      "preference_queries_used": 0
+    },
+    {
+      "method": "pebble",
+      "target_angle_deg": 0,
+      "seed": 0,
+      "preference_budget": 20,
+      "evaluation_steps": [
+        1000,
+        2000
+      ],
+      "mean_returns": [
+        -1244.4706162550788,
+        -1094.582213670028
+      ],
+      "preference_queries_used": 20
+    }
+  ]
+}

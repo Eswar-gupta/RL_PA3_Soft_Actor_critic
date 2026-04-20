@@ -269,7 +269,19 @@ def train_pebble(
 		# SAC policy updates on replay buffer
 		if step > start_steps and len(replay_buffer) >= batch_size:
 			batch = replay_buffer.sample(batch_size)
-			pebble_agent.update_from_batch(batch)
+			# Reward model outputs preference probability for segment1 over segment2.
+			# Use a fixed zero baseline segment2 to derive a scalar learned reward proxy.
+			zeros_obs = np.zeros_like(batch.observations, dtype=np.float32)
+			zeros_act = np.zeros_like(batch.actions, dtype=np.float32)
+			learned_rewards = reward_model.predict_preference(
+				batch.observations,
+				batch.actions,
+				zeros_obs,
+				zeros_act,
+			)
+			# Center and scale to keep reward magnitudes in a stable range.
+			learned_rewards = (learned_rewards - 0.5) * 2.0
+			pebble_agent.update_with_learned_rewards(batch, learned_rewards)
 
 		if done:
 			observation, _ = env.reset()
