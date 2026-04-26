@@ -13,12 +13,14 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 
+from src.utils import ensure_dir, save_json, set_seed
 from src.env_wrappers import make_pendulum_env
-from src.pebble import PebbleAgent, PebbleSACConfig, PreferenceBuffer, PreferenceTeacher
 from src.replay_buffer import ReplayBuffer
 from src.rewards.pendulum_rewards import PENDULUM_TARGET_ANGLES_DEG, make_target_reward_function
 from src.sac.sac_agent import SACAgent, SACConfig
-from src.utils import ensure_dir, save_json, set_seed
+
+
+from src.pebble import PebbleAgent, PebbleSACConfig, PreferenceBuffer, PreferenceTeacher
 
 
 def _default_device() -> str:
@@ -533,11 +535,21 @@ def run_step5_experiments(
 
 def build_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Run Step 5 Pendulum SAC vs PEBBLE experiments.")
-    parser.add_argument("--total-steps", type=int, default=300_000)
+    parser.add_argument("--total-steps", type=int, default=200_000)
     parser.add_argument("--start-steps", type=int, default=10_000)
     parser.add_argument("--eval-interval", type=int, default=10_000)
     parser.add_argument("--eval-episodes", type=int, default=20)
     parser.add_argument("--num-seeds", type=int, default=15)
+    parser.add_argument("--seed-start", type=int, default=None, help="Inclusive start seed for chunked runs")
+    parser.add_argument("--seed-end", type=int, default=None, help="Inclusive end seed for chunked runs")
+    parser.add_argument("--seeds", type=int, nargs="+", default=None, help="Explicit seed list, overrides ranges")
+    parser.add_argument(
+        "--angles",
+        type=int,
+        nargs="+",
+        default=list(PENDULUM_TARGET_ANGLES_DEG),
+        help="Subset of target angles to run, e.g. --angles 0 or --angles 0 -60 90",
+    )
     parser.add_argument("--output-dir", type=str, default="src/pebble/results/step5_pendulum")
     parser.add_argument("--budgets", type=int, nargs="+", default=[500, 1000, 3000])
     parser.add_argument("--device", type=str, choices=["cpu", "cuda"], default=_default_device())
@@ -546,8 +558,27 @@ def build_arg_parser() -> argparse.ArgumentParser:
 
 def main() -> None:
     args = build_arg_parser().parse_args()
+    selected_angles = tuple(int(angle) for angle in args.angles)
+    invalid_angles = [angle for angle in selected_angles if angle not in PENDULUM_TARGET_ANGLES_DEG]
+    if invalid_angles:
+        raise ValueError(
+            f"Unsupported angles: {invalid_angles}. Supported angles: {list(PENDULUM_TARGET_ANGLES_DEG)}"
+        )
+
+    if args.seeds is not None:
+        selected_seeds = tuple(int(seed) for seed in args.seeds)
+    elif args.seed_start is not None or args.seed_end is not None:
+        if args.seed_start is None or args.seed_end is None:
+            raise ValueError("Both --seed-start and --seed-end must be provided together")
+        if args.seed_start > args.seed_end:
+            raise ValueError("--seed-start must be <= --seed-end")
+        selected_seeds = tuple(range(int(args.seed_start), int(args.seed_end) + 1))
+    else:
+        selected_seeds = tuple(range(args.num_seeds))
+
     config = Step5Config(
-        seeds=tuple(range(args.num_seeds)),
+        seeds=selected_seeds,
+        target_angles_deg=selected_angles,
         preference_budgets=tuple(int(x) for x in args.budgets),
         total_steps=args.total_steps,
         start_steps=args.start_steps,
